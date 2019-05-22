@@ -44,7 +44,59 @@ app.post("/books", (req, res) => {
   };
 
   books.push(book);
-  save(book);
+  save(books);
+  res.send(books);
+});
+
+app.get("/books/:id", (req, res) => {
+  let books = fetchAll();
+  let book = books.find(e => e.id === parseInt(req.params.id));
+  if(!book) {
+    res.send("該当idのデータが見つかりません。");
+  }
+  res.send(book);
+});
+
+app.post("/books/:id", (req, res) => {
+  // 1. データ(course)を探す
+  let books = fetchAll();
+  let book = books.find(e => e.id === parseInt(req.params.id));
+  if(!book) {
+    res.send("該当idのデータが見つかりません。");
+  }
+
+  // 2. バリデーション
+  let {error} = validate(req.body);
+  if (error) {
+    res.send(error.details[0].message);
+  }
+
+  // 3. データを編集し、結果を返す
+  books.forEach(e => {
+    if (e.id === parseInt(req.params.id)) {
+      e.title = req.body.title;
+      e.author = req.body.author;
+      e.publisher = req.body.publisher;
+      e.isbn = req.body.isbn;
+      e.publishDate = req.body.publishDate;
+    }
+  });
+  save(books);
+  res.send(books);
+});
+
+app.delete("/books/:id", (req, res) => {
+  // 1. 該当idのデータを検索
+  let books = fetchAll();
+  let book = books.find(e => e.id === parseInt(req.params.id));
+  if(!book) {
+    res.send("該当idのデータが見つかりません。");
+  }
+  // 2. 削除
+  let index = books.indexOf(book);
+  books.splice(index, 1);
+  // 3. 結果を返す
+  save(books);
   res.send(books);
 });
 
